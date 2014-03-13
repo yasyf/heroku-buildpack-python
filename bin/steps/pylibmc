@@ -18,7 +18,7 @@ source $BIN_DIR/utils
 # If pylibmc exists within requirements, use vendored libmemcached.
 if (grep -Eiq "^\s*pylibmc" requirements.txt) then
   echo "-----> Noticed pylibmc. Bootstrapping libmemcached."
-  cd .heroku
+  cd .notheroku
 
   if [ -d "vendor/lib/sasl2" ]; then
     export LIBMEMCACHED=$(pwd)/vendor
@@ -33,6 +33,3 @@ if (grep -Eiq "^\s*pylibmc" requirements.txt) then
   export LIBMEMCACHED=$(pwd)/vendor
   cd ..
 fi
-
-
-

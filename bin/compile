@@ -18,21 +18,21 @@ CACHE_DIR=$2
 ENV_DIR=$3
 
 
-CACHED_DIRS=".heroku"
+CACHED_DIRS=".notheroku"
 
 # Static configurations for virtualenv caches.
-VIRTUALENV_LOC=".heroku/venv"
+VIRTUALENV_LOC=".notheroku/venv"
 LEGACY_TRIGGER="lib/python2.7"
 PROFILE_PATH="$BUILD_DIR/.profile.d/python.sh"
 
 DEFAULT_PYTHON_VERSION="python-2.7.6"
-PYTHON_EXE="/app/.heroku/python/bin/python"
+PYTHON_EXE="/app/.notheroku/python/bin/python"
 PIP_VERSION="1.5.4"
 SETUPTOOLS_VERSION="2.1"
 
 # Setup bpwatch
 export PATH=$PATH:$ROOT_DIR/vendor/bpwatch
-LOGPLEX_KEY="t.b396af7f-ad75-4643-8b9e-ebb288acc624"
+LOGPLEX_KEY="t.b90d9d29-5388-4908-9737-b4576af1d4ce"
 export BPWATCH_STORE_PATH=$CACHE_DIR/bpwatch.json
 BUILDPACK_VERSION=v28
 
@@ -79,14 +79,14 @@ ORIG_BUILD_DIR=$BUILD_DIR
 BUILD_DIR=$APP_DIR
 
 # Prepend proper path buildpack use.
-export PATH=$BUILD_DIR/.heroku/python/bin:$BUILD_DIR/.heroku/vendor/bin:$PATH
+export PATH=$BUILD_DIR/.notheroku/python/bin:$BUILD_DIR/.notheroku/vendor/bin:$PATH
 export PYTHONUNBUFFERED=1
 export LANG=en_US.UTF-8
-export C_INCLUDE_PATH=/app/.heroku/vendor/include:$BUILD_DIR/.heroku/vendor/include
-export CPLUS_INCLUDE_PATH=/app/.heroku/vendor/include:$BUILD_DIR/.heroku/vendor/include
-export LIBRARY_PATH=/app/.heroku/vendor/lib:$BUILD_DIR/.heroku/vendor/lib
-export LD_LIBRARY_PATH=/app/.heroku/vendor/lib:$BUILD_DIR/.heroku/vendor/lib
-export PKG_CONFIG_PATH=/app/.heroku/vendor/lib/pkg-config:$BUILD_DIR/.heroku/vendor/lib/pkg-config
+export C_INCLUDE_PATH=/app/.notheroku/vendor/include:$BUILD_DIR/.notheroku/vendor/include
+export CPLUS_INCLUDE_PATH=/app/.notheroku/vendor/include:$BUILD_DIR/.notheroku/vendor/include
+export LIBRARY_PATH=/app/.notheroku/vendor/lib:$BUILD_DIR/.notheroku/vendor/lib
+export LD_LIBRARY_PATH=/app/.notheroku/vendor/lib:$BUILD_DIR/.notheroku/vendor/lib
+export PKG_CONFIG_PATH=/app/.notheroku/vendor/lib/pkg-config:$BUILD_DIR/.notheroku/vendor/lib/pkg-config
 
 # Switch to the repo's context.
 cd $BUILD_DIR
@@ -103,8 +103,8 @@ if [ ! -f requirements.txt ]; then
 fi
 
 # Sticky runtimes.
-if [ -f $CACHE_DIR/.heroku/python-version ]; then
-  DEFAULT_PYTHON_VERSION=$(cat $CACHE_DIR/.heroku/python-version)
+if [ -f $CACHE_DIR/.notheroku/python-version ]; then
+  DEFAULT_PYTHON_VERSION=$(cat $CACHE_DIR/.notheroku/python-version)
 fi
 
 # If no runtime given, assume default version.
@@ -118,8 +118,8 @@ mkdir -p $CACHE_DIR
 
 # Purge "old-style" virtualenvs.
 bpwatch start clear_old_venvs
-  [ -d $CACHE_DIR/$LEGACY_TRIGGER ] && rm -fr $CACHE_DIR/.heroku/bin $CACHE_DIR/.heroku/lib $CACHE_DIR/.heroku/include
-  [ -d $CACHE_DIR/$VIRTUALENV_LOC ] && rm -fr $CACHE_DIR/.heroku/venv $CACHE_DIR/.heroku/src
+  [ -d $CACHE_DIR/$LEGACY_TRIGGER ] && rm -fr $CACHE_DIR/.notheroku/bin $CACHE_DIR/.notheroku/lib $CACHE_DIR/.notheroku/include
+  [ -d $CACHE_DIR/$VIRTUALENV_LOC ] && rm -fr $CACHE_DIR/.notheroku/venv $CACHE_DIR/.notheroku/src
 bpwatch stop clear_old_venvs
 
 # Restore old artifacts from the cache.
@@ -130,8 +130,8 @@ bpwatch start restore_cache
 bpwatch stop restore_cache
 
 set +e
-# Create set-aside `.heroku` folder.
-mkdir .heroku &> /dev/null
+# Create set-aside `.notheroku` folder.
+mkdir .notheroku &> /dev/null
 set -e
 
 mkdir -p $(dirname $PROFILE_PATH)
@@ -140,11 +140,11 @@ set +e
 PYTHON_VERSION=$(cat runtime.txt)
 
 # Install Python.
-if [ -f .heroku/python-version ]; then
-  if [ ! $(cat .heroku/python-version) = $PYTHON_VERSION ]; then
+if [ -f .notheroku/python-version ]; then
+  if [ ! $(cat .notheroku/python-version) = $PYTHON_VERSION ]; then
     bpwatch start uninstall_python
-      puts-step "Found $(cat .heroku/python-version), removing."
-      rm -fr .heroku/python
+      puts-step "Found $(cat .notheroku/python-version), removing."
+      rm -fr .notheroku/python
     bpwatch stop uninstall_python
   else
     SKIP_INSTALL=1
@@ -158,14 +158,14 @@ if [ ! "$SKIP_INSTALL" ]; then
     curl http://envy-versions.s3.amazonaws.com/$PYTHON_VERSION.tar.bz2 -s | tar jx &> /dev/null
     if [[ $? != 0 ]] ; then
       puts-warn "Requested runtime ($PYTHON_VERSION) was not found."
-      puts-warn "Aborting.  More info: https://devcenter.heroku.com/articles/python-support"
+      puts-warn "Aborting.  More info: https://devcenter.notheroku.com/articles/python-support"
       exit 1
     fi
-    mv python .heroku/python
+    mv python .notheroku/python
   bpwatch stop install_python
 
   # Record for future reference.
-  echo $PYTHON_VERSION > .heroku/python-version
+  echo $PYTHON_VERSION > .notheroku/python-version
   FRESH_PYTHON=true
 
   hash -r
@@ -209,7 +209,7 @@ bpwatch stop pylibmc_install
 # Install Mercurial if it appears to be required.
 if (grep -Fiq "hg+" requirements.txt) then
   bpwatch start mercurial_install
-    /app/.heroku/python/bin/pip install  mercurial | cleanup | indent
+    /app/.notheroku/python/bin/pip install  mercurial | cleanup | indent
   bpwatch stop mercurial_install
 fi
 
@@ -220,7 +220,7 @@ puts-step "Installing dependencies using Pip ($PIP_VERSION)"
 [ ! "$FRESH_PYTHON" ] && bpwatch start pip_install
 [ "$FRESH_PYTHON" ] && bpwatch start pip_install_first
 
-/app/.heroku/python/bin/pip install -r requirements.txt --exists-action=w --src=./.heroku/src --allow-all-external  | cleanup | indent
+/app/.notheroku/python/bin/pip install -r requirements.txt --exists-action=w --src=./.notheroku/src --allow-all-external --process-dependency-links | cleanup | indent
 
 [ ! "$FRESH_PYTHON" ] && bpwatch stop pip_install
 [ "$FRESH_PYTHON" ] && bpwatch stop pip_install_first
@@ -234,11 +234,11 @@ bpwatch stop collectstatic
 #
 
 # Set context environment variables.
-set-env PATH '$HOME/.heroku/python/bin:$PATH'
+set-env PATH '$HOME/.notheroku/python/bin:$PATH'
 set-env PYTHONUNBUFFERED true
-set-env PYTHONHOME /app/.heroku/python
-set-default-env LIBRARY_PATH /app/.heroku/vendor/lib
-set-default-env LD_LIBRARY_PATH /app/.heroku/vendor/lib
+set-env PYTHONHOME /app/.notheroku/python
+set-default-env LIBRARY_PATH /app/.notheroku/vendor/lib
+set-default-env LD_LIBRARY_PATH /app/.notheroku/vendor/lib
 set-default-env LANG en_US.UTF-8
 set-default-env PYTHONHASHSEED random
 set-default-env PYTHONPATH /app/
