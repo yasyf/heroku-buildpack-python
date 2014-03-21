@@ -230,6 +230,7 @@ echo "Done!"
 bpwatch start collectstatic
   sub-env $BIN_DIR/steps/collectstatic
 bpwatch stop collectstatic
+echo "Finished collectstatic."
 
 # ### Finalize
 #
@@ -243,12 +244,14 @@ set-default-env LD_LIBRARY_PATH /app/.heroku/vendor/lib
 set-default-env LANG en_US.UTF-8
 set-default-env PYTHONHASHSEED random
 set-default-env PYTHONPATH /app/
-
+echo "Finished setting environment variables."
 
 # Experimental post_compile hook.
 bpwatch start post_compile
   source $BIN_DIR/steps/hooks/post_compile
 bpwatch stop post_compile
+echo "Finished compile hooks."
+
 
 # Store new artifacts in cache.
 bpwatch start dump_cache
@@ -257,16 +260,19 @@ bpwatch start dump_cache
     cp -R $dir $CACHE_DIR/
   done
 bpwatch stop dump_cache
+echo "Finished dumping the cache."
 
 # ### Fin.
 bpwatch start appdir_commit
   deep-mv $BUILD_DIR $ORIG_BUILD_DIR
 bpwatch stop appdir_commit
+echo "Finished commiting the application directory."
 
 bpwatch start anvil_appdir_commit
   if [ "$SLUG_ID" ]; then
     deep-mv $TMP_APP_DIR $APP_DIR
   fi
+echo "Finished commiting the anvil directory."
 
 bpwatch stop anvil_appdir_commit
 bpwatch stop compile
